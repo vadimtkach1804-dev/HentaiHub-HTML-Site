@@ -1,0 +1,1423 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>HentaiHub — видеоплатформа</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+        }
+
+        body {
+            background: #0f0f0f;
+            color: #f1f1f1;
+            overflow-x: hidden;
+        }
+
+        .navbar {
+            background: #202020;
+            padding: 0.5rem 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid #3a3a3a;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .navbar-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .menu-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.8rem;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            transition: 0.2s;
+        }
+
+        .menu-btn:hover {
+            background: #3a3a3a;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .logo span {
+            background: linear-gradient(135deg, #ff69b4, #ff1493);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+        .search-container {
+            flex: 1;
+            max-width: 500px;
+            margin: 0 1rem;
+        }
+
+        .search-bar {
+            display: flex;
+            background: #121212;
+            border-radius: 40px;
+            overflow: hidden;
+            border: 1px solid #3a3a3a;
+        }
+
+        .search-bar input {
+            flex: 1;
+            padding: 10px 16px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        .search-bar button {
+            background: #3a3a3a;
+            border: none;
+            padding: 8px 20px;
+            cursor: pointer;
+            color: white;
+            font-size: 1.1rem;
+        }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-avatar-small {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            object-fit: cover;
+            background: #ff69b4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .login-btn {
+            background: #ff69b4;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #0f0f0f;
+            font-size: 0.9rem;
+            transition: 0.2s;
+        }
+
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 200;
+            display: none;
+        }
+
+        .sidebar-overlay.active {
+            display: block;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -280px;
+            width: 280px;
+            height: 100%;
+            background: #202020;
+            z-index: 201;
+            transition: left 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0 8px rgba(0,0,0,0.5);
+        }
+
+        .sidebar.active {
+            left: 0;
+        }
+
+        .sidebar-header {
+            padding: 1rem;
+            border-bottom: 1px solid #3a3a3a;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .close-sidebar {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 0.5rem 0;
+        }
+
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.8rem 1.5rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .sidebar-item:hover {
+            background: #3a3a3a;
+        }
+
+        .sidebar-item.active {
+            background: #3a3a3a;
+            border-left: 3px solid #ff69b4;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        .page {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .page.active-page {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .videos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .video-card {
+            background: #181818;
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .video-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .video-thumbnail {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: #0a0a0a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .video-thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .duration-badge {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background: rgba(0,0,0,0.8);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            z-index: 1;
+        }
+
+        .video-card-info {
+            padding: 0.8rem;
+        }
+
+        .video-card-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 0.25rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .video-card-meta {
+            font-size: 0.75rem;
+            color: #aaa;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .player-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+        }
+
+        .player-main {
+            flex: 2;
+            min-width: 280px;
+        }
+
+        .player-wrapper {
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+        }
+
+        .player-wrapper video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .player-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-top: 1rem;
+        }
+
+        .player-actions {
+            display: flex;
+            gap: 1.5rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid #2c2c2c;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: none;
+            border: none;
+            color: #aaa;
+            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 30px;
+            transition: 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .action-btn:hover {
+            background: #2a2a2a;
+        }
+
+        .action-btn.active {
+            color: #ff69b4;
+        }
+
+        .comments-section {
+            margin-top: 1.5rem;
+        }
+
+        .comment-input {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .comment-input input {
+            flex: 1;
+            padding: 10px;
+            background: #2c2c2c;
+            border: 1px solid #3a3a3a;
+            border-radius: 20px;
+            color: white;
+        }
+
+        .comment-input button {
+            padding: 10px 20px;
+            background: #ff69b4;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .comment-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .comment-item {
+            padding: 0.8rem;
+            background: #212121;
+            border-radius: 10px;
+            margin-bottom: 0.5rem;
+        }
+
+        .comment-author {
+            font-weight: bold;
+            color: #ff69b4;
+            margin-bottom: 0.25rem;
+        }
+
+        .subscribe-btn {
+            background: #ff69b4;
+            color: #0f0f0f;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .subscribe-btn.subscribed {
+            background: #3a3a3a;
+            color: white;
+        }
+
+        .sidebar-videos {
+            flex: 1;
+            min-width: 260px;
+        }
+
+        .video-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .video-list-item {
+            display: flex;
+            gap: 0.8rem;
+            padding: 0.6rem;
+            background: #212121;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .video-list-item:hover {
+            background: #2c2c2c;
+        }
+
+        .video-list-thumb {
+            width: 100px;
+            height: 56px;
+            background: #0a0a0a;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .video-list-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #202020;
+            border-radius: 20px;
+            padding: 2rem;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .modal-content h2 {
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .modal-content input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            background: #2c2c2c;
+            border: 1px solid #3a3a3a;
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .modal-content button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            background: #ff69b4;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .modal-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-tab {
+            flex: 1;
+            text-align: center;
+            padding: 8px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+
+        .modal-tab.active {
+            border-bottom-color: #ff69b4;
+            color: #ff69b4;
+        }
+
+        .error-msg {
+            color: #ff6b6b;
+            font-size: 0.85rem;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .profile-header {
+            background: linear-gradient(135deg, #1a1a1a, #0a0a0a);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            position: relative;
+        }
+
+        .profile-avatar-wrapper {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #ff69b4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+
+        .avatar-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s;
+            cursor: pointer;
+        }
+
+        .profile-avatar-wrapper:hover .avatar-overlay {
+            opacity: 1;
+        }
+
+        .edit-icon {
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .upload-area {
+            border: 2px dashed #3a3a3a;
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-bottom: 1rem;
+        }
+
+        .upload-area:hover {
+            border-color: #ff69b4;
+            background: #1f1f1f;
+        }
+
+        .btn {
+            background: #ff69b4;
+            color: #0f0f0f;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #777;
+            padding: 3rem;
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #ff6b6b;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 4px 8px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            z-index: 1100;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            .search-container { max-width: none; margin: 0.5rem 0; order: 3; width: 100%; }
+            .navbar { gap: 0.5rem; }
+            .profile-header { flex-direction: column; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="navbar">
+    <div class="navbar-left">
+        <button class="menu-btn" id="menuBtn">☰</button>
+        <div class="logo" onclick="navigateTo('home')">
+            🔞 <span>HentaiHub</span>
+        </div>
+    </div>
+    <div class="search-container">
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="Поиск видео и авторов...">
+            <button onclick="searchAll()">🔍</button>
+        </div>
+    </div>
+    <div class="navbar-right">
+        <div id="authButtonContainer"></div>
+    </div>
+</div>
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <div class="logo">🔞 <span>HentaiHub</span></div>
+        <button class="close-sidebar" id="closeSidebarBtn">✕</button>
+    </div>
+    <div class="sidebar-nav">
+        <div class="sidebar-item" onclick="navigateTo('home'); closeSidebar();"><span>🏠</span> <span>Главная</span></div>
+        <div class="sidebar-item" onclick="navigateTo('history'); closeSidebar();"><span>📜</span> <span>История</span></div>
+        <div class="sidebar-item" onclick="navigateTo('subscriptions'); closeSidebar();"><span>📺</span> <span>Подписки</span></div>
+        <div class="sidebar-item" id="sidebarProfileItem" onclick="navigateTo('profile'); closeSidebar();" style="display: none;"><span>👤</span> <span>Мой канал</span></div>
+        <div class="sidebar-item" id="sidebarAuthItem" onclick="openAuthModal()"><span>🔑</span> <span id="sidebarAuthText">Войти</span></div>
+    </div>
+</div>
+
+<div class="container">
+    <div id="homePage" class="page active-page">
+        <h1>📺 Рекомендации</h1>
+        <div id="homeVideosGrid" class="videos-grid"></div>
+    </div>
+
+    <div id="historyPage" class="page">
+        <h1>📜 История просмотров</h1>
+        <div id="historyVideosGrid" class="videos-grid"></div>
+    </div>
+
+    <div id="subscriptionsPage" class="page">
+        <h1>📺 Видео по подпискам</h1>
+        <div id="subscriptionsVideosGrid" class="videos-grid"></div>
+    </div>
+
+    <div id="playerPage" class="page">
+        <div class="player-container">
+            <div class="player-main">
+                <div class="player-wrapper"><video id="playerVideo" controls></video></div>
+                <div class="player-title" id="playerTitle"></div>
+                <div class="player-meta" id="playerMeta"></div>
+                <div class="player-actions" id="playerActions"></div>
+                <div class="comments-section">
+                    <h4>💬 Комментарии (<span id="commentsCount">0</span>)</h4>
+                    <div id="commentSection"></div>
+                </div>
+            </div>
+            <div class="sidebar-videos">
+                <h3>⬇️ Другие видео</h3>
+                <div id="sidebarVideosList" class="video-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="profilePage" class="page">
+        <div id="profileContent"></div>
+    </div>
+
+    <div id="searchPage" class="page">
+        <h1>🔍 Результаты поиска: "<span id="searchQuery"></span>"</h1>
+        <div id="searchResultsContainer"></div>
+    </div>
+</div>
+
+<!-- Модальное окно авторизации -->
+<div id="authModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-tabs">
+            <div class="modal-tab active" onclick="switchAuthTab('login')">Вход</div>
+            <div class="modal-tab" onclick="switchAuthTab('register')">Регистрация</div>
+        </div>
+        
+        <div id="loginForm">
+            <input type="text" id="loginUsername" placeholder="Имя пользователя">
+            <input type="password" id="loginPassword" placeholder="Пароль">
+            <button onclick="login()">Войти</button>
+        </div>
+        
+        <div id="registerForm" style="display: none;">
+            <input type="text" id="regUsername" placeholder="Имя пользователя">
+            <input type="email" id="regEmail" placeholder="Email">
+            <input type="password" id="regPassword" placeholder="Пароль (мин. 4 символа)">
+            <input type="password" id="regConfirmPassword" placeholder="Подтвердите пароль">
+            <button onclick="register()">Зарегистрироваться</button>
+        </div>
+        
+        <div id="authError" class="error-msg"></div>
+    </div>
+</div>
+
+<script>
+    // Данные
+    let currentUser = null;
+    let allVideos = [];
+    let users = [];
+    let videoStats = {};
+    let subscriptions = {};
+    let watchHistory = [];
+
+    function generateId() {
+        return Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+    }
+
+    function loadData() {
+        const savedUsers = localStorage.getItem('hentaihub_users');
+        if (savedUsers) {
+            users = JSON.parse(savedUsers);
+        } else {
+            users = [];
+        }
+        
+        const savedVideos = localStorage.getItem('hentaihub_videos');
+        if (savedVideos) {
+            allVideos = JSON.parse(savedVideos);
+        } else {
+            allVideos = [];
+        }
+        
+        const savedStats = localStorage.getItem('hentaihub_stats');
+        if (savedStats) {
+            videoStats = JSON.parse(savedStats);
+        } else {
+            videoStats = {};
+        }
+        
+        const savedSubs = localStorage.getItem('hentaihub_subs');
+        if (savedSubs) {
+            subscriptions = JSON.parse(savedSubs);
+        } else {
+            subscriptions = {};
+        }
+        
+        const savedHistory = localStorage.getItem('hentaihub_history');
+        if (savedHistory) {
+            watchHistory = JSON.parse(savedHistory);
+        } else {
+            watchHistory = [];
+        }
+        
+        const savedUser = localStorage.getItem('hentaihub_currentUser');
+        if (savedUser) {
+            currentUser = JSON.parse(savedUser);
+        } else {
+            currentUser = null;
+        }
+    }
+
+    function saveAll() {
+        localStorage.setItem('hentaihub_users', JSON.stringify(users));
+        localStorage.setItem('hentaihub_videos', JSON.stringify(allVideos));
+        localStorage.setItem('hentaihub_stats', JSON.stringify(videoStats));
+        localStorage.setItem('hentaihub_subs', JSON.stringify(subscriptions));
+        localStorage.setItem('hentaihub_history', JSON.stringify(watchHistory));
+        if (currentUser) {
+            localStorage.setItem('hentaihub_currentUser', JSON.stringify(currentUser));
+        } else {
+            localStorage.removeItem('hentaihub_currentUser');
+        }
+    }
+
+    // Функции взаимодействия
+    function addToHistory(videoId) {
+        if (!currentUser) return;
+        watchHistory = watchHistory.filter(h => !(h.videoId === videoId && h.userId === currentUser.id));
+        watchHistory.unshift({ videoId, userId: currentUser.id, watchedAt: Date.now() });
+        if (watchHistory.length > 50) watchHistory.pop();
+        saveAll();
+    }
+
+    function toggleLike(videoId) {
+        if (!currentUser) { showToast("Войдите для оценки"); return false; }
+        if (!videoStats[videoId]) videoStats[videoId] = { likes: [], dislikes: [], comments: [] };
+        const stats = videoStats[videoId];
+        const userLiked = stats.likes.includes(currentUser.id);
+        const userDisliked = stats.dislikes.includes(currentUser.id);
+        
+        if (userLiked) {
+            stats.likes = stats.likes.filter(id => id !== currentUser.id);
+        } else {
+            stats.likes.push(currentUser.id);
+            if (userDisliked) stats.dislikes = stats.dislikes.filter(id => id !== currentUser.id);
+        }
+        saveAll();
+        return true;
+    }
+
+    function toggleDislike(videoId) {
+        if (!currentUser) { showToast("Войдите для оценки"); return false; }
+        if (!videoStats[videoId]) videoStats[videoId] = { likes: [], dislikes: [], comments: [] };
+        const stats = videoStats[videoId];
+        const userDisliked = stats.dislikes.includes(currentUser.id);
+        
+        if (userDisliked) {
+            stats.dislikes = stats.dislikes.filter(id => id !== currentUser.id);
+        } else {
+            stats.dislikes.push(currentUser.id);
+            if (stats.likes.includes(currentUser.id)) 
+                stats.likes = stats.likes.filter(id => id !== currentUser.id);
+        }
+        saveAll();
+        return true;
+    }
+
+    function addComment(videoId, text) {
+        if (!currentUser) { showToast("Войдите чтобы комментировать"); return false; }
+        if (!text || !text.trim()) return false;
+        if (!videoStats[videoId]) videoStats[videoId] = { likes: [], dislikes: [], comments: [] };
+        videoStats[videoId].comments.push({
+            id: generateId(),
+            userId: currentUser.id,
+            userName: currentUser.name,
+            text: text.trim(),
+            createdAt: Date.now()
+        });
+        saveAll();
+        return true;
+    }
+
+    function toggleSubscribe(channelId) {
+        if (!currentUser) { showToast("Войдите чтобы подписаться"); return false; }
+        if (!subscriptions[channelId]) subscriptions[channelId] = [];
+        const index = subscriptions[channelId].indexOf(currentUser.id);
+        if (index === -1) {
+            subscriptions[channelId].push(currentUser.id);
+        } else {
+            subscriptions[channelId].splice(index, 1);
+        }
+        saveAll();
+        return true;
+    }
+
+    function isSubscribed(channelId) {
+        return currentUser && subscriptions[channelId] && subscriptions[channelId].includes(currentUser.id);
+    }
+
+    function getSubscriberCount(channelId) {
+        return subscriptions[channelId] ? subscriptions[channelId].length : 0;
+    }
+
+    // Функция обновления аватара
+    function updateAvatar(file) {
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const avatarUrl = e.target.result;
+            
+            // Обновляем в списке пользователей
+            const userIndex = users.findIndex(u => u.id === currentUser.id);
+            if (userIndex !== -1) {
+                users[userIndex].avatar = avatarUrl;
+                saveAll();
+            }
+            
+            // Обновляем текущего пользователя
+            currentUser.avatar = avatarUrl;
+            saveAll();
+            
+            // Перерисовываем страницу
+            renderAll();
+            showToast("Аватар обновлен!");
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // Генерация превью
+    function generateThumbnailFromVideo(file) {
+        return new Promise((resolve) => {
+            const video = document.createElement('video');
+            const canvas = document.createElement('canvas');
+            video.preload = 'metadata';
+            video.muted = true;
+            const url = URL.createObjectURL(file);
+            video.src = url;
+            video.addEventListener('loadeddata', () => {
+                video.currentTime = Math.min(1, video.duration * 0.2);
+            });
+            video.addEventListener('seeked', () => {
+                canvas.width = 320;
+                canvas.height = 180;
+                canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+                URL.revokeObjectURL(url);
+                resolve(canvas.toDataURL('image/jpeg', 0.7));
+            });
+            setTimeout(() => resolve(null), 3000);
+        });
+    }
+
+    function getVideoDuration(file) {
+        return new Promise((resolve) => {
+            const video = document.createElement('video');
+            const url = URL.createObjectURL(file);
+            video.preload = 'metadata';
+            video.onloadedmetadata = () => { URL.revokeObjectURL(url); resolve(video.duration); };
+            video.onerror = () => { URL.revokeObjectURL(url); resolve(0); };
+            video.src = url;
+        });
+    }
+
+    // IndexedDB для файлов
+    const DB_NAME = 'HentaiHubFiles';
+    let fileDB = null;
+    function openFileDB() {
+        return new Promise((resolve) => {
+            const req = indexedDB.open(DB_NAME, 1);
+            req.onupgradeneeded = (e) => e.target.result.createObjectStore('videoFiles', { keyPath: 'id' });
+            req.onsuccess = (e) => { fileDB = e.target.result; resolve(); };
+            req.onerror = () => resolve();
+        });
+    }
+    async function saveVideoFile(id, blob) { if (!fileDB) await openFileDB(); return new Promise((res,rej)=>{const tx=fileDB.transaction('videoFiles','readwrite'); tx.objectStore('videoFiles').put({id,file:blob}); tx.oncomplete=res; tx.onerror=rej;}); }
+    async function getVideoFile(id) { if (!fileDB) await openFileDB(); return new Promise((res)=>{const req=fileDB.transaction('videoFiles').objectStore('videoFiles').get(id); req.onsuccess=()=>res(req.result?.file);}); }
+    async function deleteVideoFile(id) { if (!fileDB) await openFileDB(); return new Promise((res)=>{fileDB.transaction('videoFiles','readwrite').objectStore('videoFiles').delete(id); res();}); }
+
+    async function uploadVideo(title, file) {
+        if (!currentUser) { showToast("Сначала войдите"); return false; }
+        const duration = await getVideoDuration(file);
+        const thumbnail = await generateThumbnailFromVideo(file);
+        const videoId = generateId();
+        const videoData = { id: videoId, userId: currentUser.id, title: title.trim() || "Новое видео", duration, size: file.size, uploadedAt: Date.now(), userName: currentUser.name, thumbnail };
+        await saveVideoFile(videoId, file);
+        allVideos.unshift(videoData);
+        if (!videoStats[videoId]) videoStats[videoId] = { likes: [], dislikes: [], comments: [] };
+        saveAll();
+        showToast("Видео загружено!");
+        renderAll();
+        return true;
+    }
+
+    async function playVideo(videoId) {
+        const video = allVideos.find(v => v.id === videoId);
+        if (!video) return;
+        addToHistory(videoId);
+        const blob = await getVideoFile(videoId);
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
+        const player = document.getElementById('playerVideo');
+        player.src = url;
+        player.load();
+        player.play().catch(e=>console.log(e));
+        
+        const stats = videoStats[videoId] || { likes: [], dislikes: [], comments: [] };
+        const liked = currentUser && stats.likes.includes(currentUser.id);
+        const disliked = currentUser && stats.dislikes.includes(currentUser.id);
+        
+        document.getElementById('playerTitle').innerText = video.title;
+        document.getElementById('playerMeta').innerHTML = `👤 ${video.userName} • ⏱️ ${formatDuration(video.duration)} • 👍 ${stats.likes.length} • 👎 ${stats.dislikes.length}`;
+        document.getElementById('playerActions').innerHTML = `
+            <button class="action-btn ${liked ? 'active' : ''}" onclick="toggleLikeAndRefresh('${videoId}')">👍 ${stats.likes.length}</button>
+            <button class="action-btn ${disliked ? 'active' : ''}" onclick="toggleDislikeAndRefresh('${videoId}')">👎 ${stats.dislikes.length}</button>
+            <button class="action-btn" onclick="toggleSubscribeAndRefresh('${video.userId}')">${isSubscribed(video.userId) ? '✅ Вы подписаны' : '🔔 Подписаться'} (${getSubscriberCount(video.userId)})</button>
+        `;
+        
+        const comments = stats.comments || [];
+        document.getElementById('commentsCount').innerText = comments.length;
+        document.getElementById('commentSection').innerHTML = `
+            <div class="comment-input"><input type="text" id="commentText" placeholder="Напишите комментарий..."><button onclick="addCommentAndRefresh('${videoId}')">Отправить</button></div>
+            <div class="comment-list">${comments.map(c => `<div class="comment-item"><div class="comment-author">${escapeHtml(c.userName)}</div><div>${escapeHtml(c.text)}</div><div style="font-size:0.7rem;color:#aaa;">${new Date(c.createdAt).toLocaleString()}</div></div>`).join('') || '<div style="color:#777;">Нет комментариев</div>'}</div>
+        `;
+        
+        const otherVideos = allVideos.filter(v => v.id !== videoId);
+        document.getElementById('sidebarVideosList').innerHTML = otherVideos.slice(0,10).map(v => `
+            <div class="video-list-item" onclick="playVideo('${v.id}')">
+                <div class="video-list-thumb">${v.thumbnail ? `<img src="${v.thumbnail}">` : '🎬'}</div>
+                <div class="video-list-info"><div class="video-list-title">${escapeHtml(v.title)}</div><div style="font-size:0.7rem;">${v.userName}</div></div>
+            </div>
+        `).join('') || '<div>Нет видео</div>';
+        navigateTo('player');
+    }
+
+    function formatDuration(sec) { if (!sec) return "0:00"; const m=Math.floor(sec/60), s=Math.floor(sec%60); return `${m}:${s.toString().padStart(2,'0')}`; }
+    function escapeHtml(str) { return str?.replace(/[&<>]/g, m=>({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])) || ''; }
+    function showToast(msg) { const t=document.createElement('div'); t.className='toast'; t.innerText=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),3000); }
+
+    function renderHome() {
+        const grid = document.getElementById('homeVideosGrid');
+        if (!allVideos.length) { grid.innerHTML='<div class="empty-state">🎬 Нет видео</div>'; return; }
+        grid.innerHTML = allVideos.map(v => `
+            <div class="video-card" onclick="playVideo('${v.id}')">
+                <div class="video-thumbnail">${v.thumbnail ? `<img src="${v.thumbnail}">` : '<div style="font-size:3rem;">🎬</div>'}<span class="duration-badge">${formatDuration(v.duration)}</span></div>
+                <div class="video-card-info"><div class="video-card-title">${escapeHtml(v.title)}</div><div class="video-card-meta">${escapeHtml(v.userName)} • ${formatDuration(v.duration)}</div></div>
+            </div>
+        `).join('');
+    }
+
+    function renderHistory() {
+        if (!currentUser) { document.getElementById('historyVideosGrid').innerHTML='<div class="empty-state">Войдите чтобы видеть историю</div>'; return; }
+        const historyVideos = watchHistory.filter(h => h.userId === currentUser.id).map(h => allVideos.find(v => v.id === h.videoId)).filter(v => v);
+        const grid = document.getElementById('historyVideosGrid');
+        if (!historyVideos.length) { grid.innerHTML='<div class="empty-state">📜 История пуста</div>'; return; }
+        grid.innerHTML = historyVideos.map(v => `
+            <div class="video-card" onclick="playVideo('${v.id}')">
+                <div class="video-thumbnail">${v.thumbnail ? `<img src="${v.thumbnail}">` : '🎬'}<span class="duration-badge">${formatDuration(v.duration)}</span></div>
+                <div class="video-card-info"><div class="video-card-title">${escapeHtml(v.title)}</div><div class="video-card-meta">${escapeHtml(v.userName)}</div></div>
+            </div>
+        `).join('');
+    }
+
+    function renderSubscriptions() {
+        if (!currentUser) { document.getElementById('subscriptionsVideosGrid').innerHTML='<div class="empty-state">Войдите чтобы видеть подписки</div>'; return; }
+        const subscribedChannels = Object.entries(subscriptions).filter(([chId, subs]) => subs.includes(currentUser.id)).map(([chId]) => chId);
+        const subVideos = allVideos.filter(v => subscribedChannels.includes(v.userId));
+        const grid = document.getElementById('subscriptionsVideosGrid');
+        if (!subVideos.length) { grid.innerHTML='<div class="empty-state">Нет видео от подписок</div>'; return; }
+        grid.innerHTML = subVideos.map(v => `
+            <div class="video-card" onclick="playVideo('${v.id}')">
+                <div class="video-thumbnail">${v.thumbnail ? `<img src="${v.thumbnail}">` : '🎬'}<span class="duration-badge">${formatDuration(v.duration)}</span></div>
+                <div class="video-card-info"><div class="video-card-title">${escapeHtml(v.title)}</div><div class="video-card-meta">${escapeHtml(v.userName)}</div></div>
+            </div>
+        `).join('');
+    }
+
+    function searchAll() {
+        const query = document.getElementById('searchInput').value.toLowerCase().trim();
+        if (!query) { showToast("Введите запрос"); return; }
+        const videoResults = allVideos.filter(v => v.title.toLowerCase().includes(query) || v.userName.toLowerCase().includes(query));
+        const userResults = users.filter(u => u.username.toLowerCase().includes(query) && u.id !== currentUser?.id);
+        document.getElementById('searchQuery').innerText = query;
+        const container = document.getElementById('searchResultsContainer');
+        container.innerHTML = `
+            <h3>🎬 Видео (${videoResults.length})</h3>
+            <div class="videos-grid">${videoResults.map(v => `
+                <div class="video-card" onclick="playVideo('${v.id}')">
+                    <div class="video-thumbnail">${v.thumbnail ? `<img src="${v.thumbnail}">` : '🎬'}<span class="duration-badge">${formatDuration(v.duration)}</span></div>
+                    <div class="video-card-info"><div class="video-card-title">${escapeHtml(v.title)}</div><div class="video-card-meta">${escapeHtml(v.userName)}</div></div>
+                </div>
+            `).join('') || '<div class="empty-state">Нет видео</div>'}</div>
+            <h3 style="margin-top:2rem;">👥 Авторы (${userResults.length})</h3>
+            <div class="videos-grid">${userResults.map(u => `
+                <div class="video-card" onclick="viewChannel('${u.id}')">
+                    <div class="video-thumbnail"><div style="font-size:4rem;">👤</div></div>
+                    <div class="video-card-info"><div class="video-card-title">${escapeHtml(u.username)}</div><div class="video-card-meta">📺 Подписчиков: ${getSubscriberCount(u.id)}</div></div>
+                </div>
+            `).join('') || '<div class="empty-state">Нет авторов</div>'}</div>
+        `;
+        navigateTo('search');
+    }
+
+    function viewChannel(userId) {
+        const channel = users.find(u => u.id === userId);
+        if (!channel) return;
+        const channelVideos = allVideos.filter(v => v.userId === userId);
+        document.getElementById('profileContent').innerHTML = `
+            <div class="profile-header">
+                <div class="profile-avatar-wrapper" style="width:100px;height:100px;cursor:default;">
+                    ${channel.avatar ? `<img src="${channel.avatar}" class="profile-avatar" style="object-fit:cover;">` : `<div class="profile-avatar">${channel.username.charAt(0).toUpperCase()}</div>`}
+                </div>
+                <div><h2>${escapeHtml(channel.username)}</h2><div>📺 ${channelVideos.length} видео • 👥 ${getSubscriberCount(userId)} подписчиков</div>
+                <button class="subscribe-btn ${isSubscribed(userId) ? 'subscribed' : ''}" onclick="toggleSubscribeAndRefreshChannel('${userId}')">${isSubscribed(userId) ? 'Отписаться' : 'Подписаться'}</button></div>
+            </div>
+            <div class="videos-grid">${channelVideos.map(v => `
+                <div class="video-card" onclick="playVideo('${v.id}')">
+                    <div class="video-thumbnail">${v.thumbnail ? `<img src="${v.thumbnail}">` : '🎬'}<span class="duration-badge">${formatDuration(v.duration)}</span></div>
+                    <div class="video-card-info"><div class="video-card-title">${escapeHtml(v.title)}</div></div>
+                </div>
+            `).join('') || '<div class="empty-state">Нет видео</div>'}</div>
+        `;
+        navigateTo('profile');
+    }
+
+    function renderOwnProfile() {
+        if (!currentUser) { 
+            document.getElementById('profileContent').innerHTML='<div class="empty-state"><button class="login-btn" onclick="openAuthModal()">Войти или зарегистрироваться</button></div>'; 
+            return; 
+        }
+        const userVideos = allVideos.filter(v => v.userId === currentUser.id);
+        const avatarHtml = currentUser.avatar ? 
+            `<img src="${currentUser.avatar}" class="profile-avatar" style="object-fit:cover;">` : 
+            `<div class="profile-avatar">${currentUser.name.charAt(0).toUpperCase()}</div>`;
+        
+        document.getElementById('profileContent').innerHTML = `
+            <div class="profile-header">
+                <div class="profile-avatar-wrapper" onclick="document.getElementById('avatarUploadInput').click()">
+                    ${avatarHtml}
+                    <div class="avatar-overlay">
+                        <span class="edit-icon">📷</span>
+                    </div>
+                </div>
+                <div><h2>${escapeHtml(currentUser.name)}</h2><div>📺 ${userVideos.length} видео • 👥 ${getSubscriberCount(currentUser.id)} подписчиков</div>
+                <button class="btn" onclick="openUploadModal()">📤 Загрузить видео</button>
+                <button class="btn" onclick="logout()" style="background:#ff4444;">Выйти</button></div>
+            </div>
+            <div class="upload-area" id="uploadArea">📹 Нажмите для загрузки видео<input type="file" id="uploadFile" accept="video/*" style="display:none;"></div>
+            <input type="text" id="uploadTitle" placeholder="Название видео"><button class="btn" id="uploadBtn">Загрузить</button>
+            <h3>📼 Мои видео (${userVideos.length})</h3>
+            <div class="video-list">${userVideos.map(v => `
+                <div class="video-list-item"><div class="video-list-thumb" onclick="playVideo('${v.id}')">${v.thumbnail ? `<img src="${v.thumbnail}">` : '🎬'}</div>
+                <div class="video-list-info" onclick="playVideo('${v.id}')"><div>${escapeHtml(v.title)}</div><div style="font-size:0.7rem;">${formatDuration(v.duration)}</div></div>
+                <button class="delete-btn" onclick="deleteVideo('${v.id}')">🗑️</button></div>
+            `).join('') || '<div>Нет видео</div>'}</div>
+        `;
+        
+        // Скрытый input для загрузки аватара
+        if (!document.getElementById('avatarUploadInput')) {
+            const avatarInput = document.createElement('input');
+            avatarInput.type = 'file';
+            avatarInput.id = 'avatarUploadInput';
+            avatarInput.accept = 'image/jpeg,image/png,image/gif';
+            avatarInput.style.display = 'none';
+            avatarInput.onchange = (e) => {
+                if (e.target.files && e.target.files[0]) {
+                    updateAvatar(e.target.files[0]);
+                }
+            };
+            document.body.appendChild(avatarInput);
+        }
+        
+        const uploadArea = document.getElementById('uploadArea'); 
+        const fileInput = document.getElementById('uploadFile'); 
+        const uploadBtn = document.getElementById('uploadBtn'); 
+        const titleInput = document.getElementById('uploadTitle');
+        if (uploadArea) uploadArea.onclick = () => fileInput.click();
+        if (uploadBtn) uploadBtn.onclick = async () => { const file=fileInput.files[0]; if(file) await uploadVideo(titleInput.value, file); fileInput.value=''; titleInput.value=''; };
+    }
+    
+    function openUploadModal() {
+        document.getElementById('uploadFile').click();
+    }
+
+    function renderAuthButton() {
+        const container = document.getElementById('authButtonContainer');
+        if (currentUser) {
+            const avatarHtml = currentUser.avatar ? 
+                `<img src="${currentUser.avatar}" class="user-avatar-small" style="object-fit:cover;" onclick="navigateTo('profile')">` : 
+                `<div class="user-avatar-small" onclick="navigateTo('profile')">${currentUser.name.charAt(0).toUpperCase()}</div>`;
+            container.innerHTML = avatarHtml;
+            document.getElementById('sidebarProfileItem').style.display = 'flex';
+            document.getElementById('sidebarAuthItem').style.display = 'none';
+        } else {
+            container.innerHTML = `<button class="login-btn" onclick="openAuthModal()">Войти</button>`;
+            document.getElementById('sidebarProfileItem').style.display = 'none';
+            document.getElementById('sidebarAuthItem').style.display = 'flex';
+            document.getElementById('sidebarAuthText').innerText = 'Войти';
+        }
+    }
+
+    function renderAll() { 
+        renderHome(); 
+        renderHistory(); 
+        renderSubscriptions(); 
+        renderAuthButton(); 
+        if(document.getElementById('profilePage').classList.contains('active-page')) renderOwnProfile(); 
+    }
+
+    // ========== АВТОРИЗАЦИЯ ==========
+    function register() {
+        const username = document.getElementById('regUsername').value.trim();
+        const email = document.getElementById('regEmail').value.trim();
+        const password = document.getElementById('regPassword').value;
+        const confirm = document.getElementById('regConfirmPassword').value;
+        
+        if (!username || !email || !password) {
+            showAuthError('Заполните все поля');
+            return;
+        }
+        
+        if (password !== confirm) {
+            showAuthError('Пароли не совпадают');
+            return;
+        }
+        
+        if (password.length < 4) {
+            showAuthError('Пароль должен быть не менее 4 символов');
+            return;
+        }
+        
+        if (users.find(u => u.username === username)) {
+            showAuthError('Пользователь с таким именем уже существует');
+            return;
+        }
+        
+        if (users.find(u => u.email === email)) {
+            showAuthError('Email уже используется');
+            return;
+        }
+        
+        const newUser = {
+            id: generateId(),
+            username: username,
+            email: email,
+            password: password,
+            avatar: null,
+            registeredAt: Date.now()
+        };
+        
+        users.push(newUser);
+        saveAll();
+        
+        showAuthError('Регистрация успешна! Теперь войдите', 'success');
+        switchAuthTab('login');
+        
+        document.getElementById('regUsername').value = '';
+        document.getElementById('regEmail').value = '';
+        document.getElementById('regPassword').value = '';
+        document.getElementById('regConfirmPassword').value = '';
+    }
+
+    function login() {
+        const username = document.getElementById('loginUsername').value.trim();
+        const password = document.getElementById('loginPassword').value;
+        
+        const user = users.find(u => u.username === username && u.password === password);
+        
+        if (user) {
+            currentUser = {
+                id: user.id,
+                name: user.username,
+                email: user.email,
+                avatar: user.avatar
+            };
+            saveAll();
+            closeAuthModal();
+            renderAll();
+            showToast(`Добро пожаловать, ${user.username}!`);
+            navigateTo('home');
+        } else {
+            showAuthError('Неверное имя пользователя или пароль');
+        }
+    }
+
+    function logout() {
+        currentUser = null;
+        saveAll();
+        renderAll();
+        showToast('Вы вышли из аккаунта');
+        navigateTo('home');
+    }
+
+    function showAuthError(msg, type = 'error') {
+        const errorDiv = document.getElementById('authError');
+        errorDiv.textContent = msg;
+        errorDiv.style.color = type === 'error' ? '#ff6b6b' : '#6bff6b';
+        setTimeout(() => {
+            if (errorDiv) errorDiv.textContent = '';
+        }, 3000);
+    }
+
+    function openAuthModal() {
+        document.getElementById('authModal').classList.add('active');
+        switchAuthTab('login');
+        document.getElementById('loginUsername').value = '';
+        document.getElementById('loginPassword').value = '';
+        document.getElementById('authError').textContent = '';
+    }
+
+    function closeAuthModal() {
+        document.getElementById('authModal').classList.remove('active');
+    }
+
+    function switchAuthTab(tab) {
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const tabs = document.querySelectorAll('.modal-tab');
+        
+        tabs.forEach(t => t.classList.remove('active'));
+        
+        if (tab === 'login') {
+            loginForm.style.display = 'block';
+            registerForm.style.display = 'none';
+            tabs[0].classList.add('active');
+        } else {
+            loginForm.style.display = 'none';
+            registerForm.style.display = 'block';
+            tabs[1].classList.add('active');
+        }
+        document.getElementById('authError').textContent = '';
+    }
+
+    // Навигация
+    function navigateTo(page) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
+        document.getElementById(`${page}Page`).classList.add('active-page');
+        if (page === 'profile') renderOwnProfile();
+        if (page === 'history') renderHistory();
+        if (page === 'subscriptions') renderSubscriptions();
+    }
+
+    function openSidebar() { 
+        document.getElementById('sidebar').classList.add('active'); 
+        document.getElementById('sidebarOverlay').classList.add('active'); 
+        document.body.style.overflow = 'hidden'; 
+    }
+    
+    function closeSidebar() { 
+        document.getElementById('sidebar').classList.remove('active'); 
+        document.getElementById('sidebarOverlay').classList.remove('active'); 
+        document.body.style.overflow = ''; 
+    }
+    
+    async function deleteVideo(id) { 
+        const v = allVideos.find(v => v.id === id); 
+        if (v && v.userId === currentUser?.id) { 
+            allVideos = allVideos.filter(v => v.id !== id); 
+            await deleteVideoFile(id); 
+            saveAll(); 
+            renderAll(); 
+            showToast("Видео удалено"); 
+        } 
+    }
+
+    // Глобальные функции для кнопок
+    window.toggleLikeAndRefresh = async (id) => { toggleLike(id); await playVideo(id); };
+    window.toggleDislikeAndRefresh = async (id) => { toggleDislike(id); await playVideo(id); };
+    window.addCommentAndRefresh = async (id) => { 
+        const input = document.getElementById('commentText'); 
+        if (addComment(id, input?.value)) { 
+            input.value = ''; 
+            await playVideo(id); 
+        } 
+    };
+    window.toggleSubscribeAndRefresh = async (id) => { toggleSubscribe(id); await playVideo(id); };
+    window.toggleSubscribeAndRefreshChannel = (id) => { toggleSubscribe(id); renderAll(); viewChannel(id); };
+    window.playVideo = playVideo;
+    window.deleteVideo = deleteVideo;
+    window.navigateTo = navigateTo;
+    window.openAuthModal = openAuthModal;
+    window.closeAuthModal = closeAuthModal;
+    window.switchAuthTab = switchAuthTab;
+    window.login = login;
+    window.register = register;
+    window.logout = logout;
+    window.searchAll = searchAll;
+    window.viewChannel = viewChannel;
+    window.closeSidebar = closeSidebar;
+    window.openUploadModal = openUploadModal;
+    window.updateAvatar = updateAvatar;
+    
+    // Инициализация
+    async function init() { 
+        loadData(); 
+        await openFileDB(); 
+        renderAll(); 
+        document.getElementById('menuBtn').onclick = openSidebar; 
+        document.getElementById('closeSidebarBtn').onclick = closeSidebar; 
+        document.getElementById('sidebarOverlay').onclick = closeSidebar; 
+        document.getElementById('searchInput').addEventListener('keypress', (e) => { if(e.key === 'Enter') searchAll(); }); 
+    }
+    
+    init();
+</script>
+</body>
+</html>
